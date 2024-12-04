@@ -33,7 +33,7 @@ jobs:
     - name: Terraform Validate
       run: terraform validate
 
-  terraform-run:
+  terraform-plan:
     needs: terraform-test
     name: 'Terraform Run'
     runs-on: ubuntu-latest
@@ -62,5 +62,30 @@ jobs:
         name: tfplan
         path: terraform.plan
 
+
+  terraform-apply:
+    needs: terraform-plan
+    name: 'Terraform Apply'
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+    
+    - name: Install Terraform
+      uses: hashicorp/setup-terraform@v1
+
+    - name: Terraform Init
+      run: terraform init
+
+    - name: Terraform Plan
+      run: terraform plan -out=terraform.plan
+
+    - name: Download Terraform Plan
+      uses: actions/download-artifact@v3
+      with:
+        name: terraform-plan
+        path: .
+
     - name: Terraform Apply
-      run: terraform apply
+      run: terraform apply -auto-approve terraform.plan
